@@ -1,0 +1,6 @@
+{
+  "name": "PyCalc - Calculadora Full Stack Python",
+  "description": "Calculadora responsiva para web e celular com motor de cálculo matemático desenvolvido em Python.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
