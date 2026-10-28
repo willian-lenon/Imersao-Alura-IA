@@ -10,16 +10,17 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000', 10);
 const isProduction = process.env.NODE_ENV === 'production';
+const PYTHON_CMD = process.env.PYTHON_CMD || (process.platform === 'win32' ? 'python' : 'python3');
 
 app.use(express.json());
 
 // Endpoint de integridade e versão do motor Python
 app.get('/api/health', (req, res) => {
-  execFile('python3', ['--version'], (error, stdout, stderr) => {
+  execFile(PYTHON_CMD, ['--version'], (error, stdout, stderr) => {
     if (error) {
       return res.status(500).json({
         status: 'error',
-        message: 'Python 3 não encontrado no ambiente do servidor.',
+        message: 'Python não encontrado no ambiente do servidor.',
         error: error.message
       });
     }
@@ -72,7 +73,7 @@ app.post('/api/calculate', (req, res) => {
   const scriptPath = path.join(__dirname, 'calculator.py');
 
   // Executa o script Python passando a expressão como argumento seguro
-  execFile('python3', [scriptPath, trimmed], { timeout: 4000 }, (error, stdout, stderr) => {
+  execFile(PYTHON_CMD, [scriptPath, trimmed], { timeout: 4000 }, (error, stdout, stderr) => {
     if (stdout) {
       try {
         const parsed = JSON.parse(stdout);
