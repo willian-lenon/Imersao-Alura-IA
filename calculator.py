@@ -4,9 +4,9 @@ Módulo de Cálculo Matemático - PyCalc Engine
 Desenvolvido por Analista de Sistemas e Engenheiro Full Stack Python.
 
 Este módulo implementa um analisador léxico (tokenizer) e um avaliador sintático
-seguro baseado em Árvore de Sintaxe Abstrata (AST) do Python ou no algoritmo
-Shunting-Yard, respeitando a precedência PEMDAS/BODMAS e utilizando a biblioteca
-Decimal para precisão aritmética exata.
+seguro baseado no algoritmo Shunting-Yard (Edsger Dijkstra), respeitando a
+precedência PEMDAS/BODMAS, cálculo de porcentagens (%) e utilizando a biblioteca
+Decimal para precisão aritmética exata sem ruído de ponto flutuante.
 """
 
 import sys
@@ -28,9 +28,10 @@ class CalculatorEngine:
     """
     Motor matemático que processa expressões respeitando rigorosamente:
     1. Agrupamentos (parênteses)
-    2. Precedência de Multiplicação e Divisão sobre Adição e Subtração
-    3. Tratamento de divisão por zero
-    4. Precisão decimal
+    2. Porcentagens (%) diretas e relativas
+    3. Precedência de Multiplicação e Divisão sobre Adição e Subtração
+    4. Tratamento de divisão por zero
+    5. Precisão decimal exata
     """
 
     OPERATORS = {
@@ -38,6 +39,7 @@ class CalculatorEngine:
         '-': {'prec': 1, 'assoc': 'L', 'name': 'Subtração'},
         '*': {'prec': 2, 'assoc': 'L', 'name': 'Multiplicação'},
         '/': {'prec': 2, 'assoc': 'L', 'name': 'Divisão'},
+        '%': {'prec': 3, 'assoc': 'L', 'name': 'Porcentagem'},
     }
 
     def sanitize(self, expression: str) -> str:
@@ -45,15 +47,15 @@ class CalculatorEngine:
         Higieniza e normaliza a expressão:
         - Substitui símbolos visuais (× por *, ÷ por /, vírgula por ponto)
         - Remove espaços supérfluos
-        - Valida caracteres permitidos
+        - Valida caracteres permitidos (incluindo o símbolo de porcentagem %)
         """
         expr = expression.strip()
         expr = expr.replace('×', '*').replace('x', '*').replace('X', '*')
         expr = expr.replace('÷', '/').replace(':', '/')
         expr = expr.replace(',', '.')
 
-        # Permite apenas dígitos, pontos, parênteses, operadores e espaços
-        invalid_chars = re.findall(r'[^0-9\+\-\*\/\(\)\.\s]', expr)
+        # Permite apenas dígitos, pontos, parênteses, operadores, porcentagem e espaços
+        invalid_chars = re.findall(r'[^0-9\+\-\*\/\(\)\.\s\%]', expr)
         if invalid_chars:
             unique_invalids = list(set(invalid_chars))
             raise MathEngineError(f"Caractere inválido encontrado na expressão: {', '.join(unique_invalids)}")
@@ -63,7 +65,7 @@ class CalculatorEngine:
     def tokenize(self, expression: str) -> list:
         """
         Análise Léxica: converte a string de entrada em uma lista de tokens semânticos.
-        Trata números decimais, operadores e números negativos unários.
+        Trata números decimais, operadores, parênteses, negações unárias e porcentagens.
         """
         sanitized = self.sanitize(expression)
         tokens = []
@@ -76,6 +78,11 @@ class CalculatorEngine:
             if char.isspace():
                 i += 1
                 continue
+
+            # Multiplicação implícita se porcentagem for sucedida diretamente por número ou '('
+            # Exemplo: "10% 200" ou "10%(200)" torna-se "10% * 200"
+            if tokens and tokens[-1]['type'] == 'PERCENT' and (char.isdigit() or char == '.' or char == '('):
+                tokens.append({'type': 'OPERATOR', 'value': '*'})
 
             # Detecta números (inteiros e decimais)
             if char.isdigit() or char == '.':
@@ -99,8 +106,19 @@ class CalculatorEngine:
                 i += 1
                 continue
 
+            # Detecta operador de porcentagem (%)
+            if char == '%':
+                if not tokens:
+                    raise MathEngineError("Símbolo de porcentagem '%' posicionado incorretamente no início da expressão.")
+                prev_token = tokens[-1]
+                if prev_token['type'] not in ('NUMBER', 'PAREN') or (prev_token['type'] == 'PAREN' and prev_token['value'] != ')'):
+                    raise MathEngineError("Símbolo de porcentagem '%' deve vir logo após um número ou parêntese fechado ')'.")
+                tokens.append({'type': 'PERCENT', 'value': '%'})
+                i += 1
+                continue
+
             # Detecta operadores (+, -, *, /)
-            if char in self.OPERATORS:
+            if char in self.OPERATORS and char != '%':
                 # Tratamento de operador unário negativo (-) ou positivo (+)
                 # Ocorre no início da expressão ou após outro operador / parêntese aberto '('
                 is_unary = False
@@ -127,11 +145,11 @@ class CalculatorEngine:
 
         return tokens
 
-    def to_rpn(self, tokens: list) -> tuple:
+    def to_rpn(self, tokens: list) -> list:
         """
         Algoritmo Shunting-Yard (Edsger Dijkstra):
         Converte a sequência de tokens da notação infixa para RPN (Reverse Polish Notation),
-        garantindo a precedência matemática rigorosa (PEMDAS).
+        garantindo a precedência matemática rigorosa (PEMDAS) e operadores pós-fixos (%).
         """
         output = []
         op_stack = []
@@ -141,6 +159,9 @@ class CalculatorEngine:
             val = token['value']
 
             if ttype == 'NUMBER':
+                output.append(token)
+            elif ttype == 'PERCENT':
+                # Operador pós-fixo (%): aplica-se imediatamente ao operando mais recente
                 output.append(token)
             elif ttype == 'UNARY_OP':
                 op_stack.append(token)
@@ -192,7 +213,7 @@ class CalculatorEngine:
         steps = []
         step_number = 1
 
-        for token in rpn_tokens:
+        for idx, token in enumerate(rpn_tokens):
             ttype = token['type']
             val = token['value']
 
@@ -206,6 +227,39 @@ class CalculatorEngine:
                 steps.append(f"Passo {step_number}: Inversão de sinal de {operand} = {res}")
                 step_number += 1
                 stack.append(res)
+            elif ttype == 'PERCENT':
+                if not stack:
+                    raise MathEngineError("Operando ausente para cálculo de porcentagem.")
+                val_to_pct = stack.pop()
+
+                # Verifica se a porcentagem faz parte de adição ou subtração direta (ex: 100 + 10% ou 100 - 10%)
+                # No RPN, o padrão de adição/subtração relativa é: [base, percentual, %, (+ ou -)]
+                # Nesse caso, len(stack) >= 1 e o próximo token é um operador '+' ou '-'
+                is_relative = False
+                base_val = None
+                if len(stack) >= 1 and (idx + 1) < len(rpn_tokens):
+                    next_tok = rpn_tokens[idx + 1]
+                    if next_tok['type'] == 'OPERATOR' and next_tok['value'] in ('+', '-'):
+                        is_relative = True
+                        base_val = stack[-1]
+
+                if is_relative and base_val is not None:
+                    # Exemplo comercial: 100 + 20% -> 20% de 100 = 20
+                    pct_val = (val_to_pct / Decimal(100)) * base_val
+                    val_fmt = self.format_number(val_to_pct)
+                    base_fmt = self.format_number(base_val)
+                    res_fmt = self.format_number(pct_val)
+                    steps.append(f"Passo {step_number}: Porcentagem relativa ({val_fmt}% de {base_fmt}) = {res_fmt}")
+                    step_number += 1
+                    stack.append(pct_val)
+                else:
+                    # Exemplo direto: 50% = 0.5 ou 200 * 10% = 20
+                    pct_val = val_to_pct / Decimal(100)
+                    val_fmt = self.format_number(val_to_pct)
+                    res_fmt = self.format_number(pct_val)
+                    steps.append(f"Passo {step_number}: Porcentagem ({val_fmt}% = {res_fmt})")
+                    step_number += 1
+                    stack.append(pct_val)
             elif ttype == 'OPERATOR':
                 if len(stack) < 2:
                     raise MathEngineError(f"Operação '{val}' requer dois operandos válidos.")
@@ -287,6 +341,7 @@ class CalculatorEngine:
                 "engine": "Python 3.10 Standard Decimal & Shunting-Yard Engine",
                 "rules_applied": [
                     "Ordem PEMDAS/BODMAS respeitada",
+                    "Cálculo de Porcentagem (%) com suporte direto e relativo",
                     "Multiplicação e Divisão prioritárias",
                     "Adição e Subtração com associatividade à esquerda",
                     "Validação estrita de divisão por zero",

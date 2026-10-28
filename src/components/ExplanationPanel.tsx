@@ -99,54 +99,47 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
           }`}
         >
           <BookOpen className="w-4 h-4 text-purple-500" />
-          <span>Regras da Matemática</span>
+          <span>Regras Matemáticas</span>
         </button>
       </div>
 
-      {/* Conteúdo Dinâmico */}
-      <div className="p-4 sm:p-6 overflow-y-auto max-h-[560px] flex-1">
-        {/* ABA 1: PASSO A PASSO DA RESOLUÇÃO ATUAL */}
+      {/* Conteúdo das Abas com scroll interno independente */}
+      <div className="p-4 sm:p-6 overflow-y-auto max-h-[600px] scrollbar-thin">
+        {/* ABA 1: PASSO A PASSO DA RESOLUÇÃO */}
         {activeTab === 'steps' && (
           <div className="space-y-4">
             {lastResult ? (
               <div className="space-y-4">
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800">
-                  <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
-                    <span>Expressão Avaliada</span>
-                    {lastResult.execution_time_ms !== undefined && (
-                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
-                        {lastResult.execution_time_ms} ms em Python
-                      </span>
-                    )}
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Expressão Avaliada:</span>
+                    <span className="font-mono font-bold text-sm text-slate-900 dark:text-white">
+                      {lastResult.expression}
+                    </span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-mono font-bold text-slate-900 dark:text-white break-all">
-                    {lastResult.expression}
+                  <div className="text-right">
+                    <span className="text-slate-500 block">Tempo de Execução:</span>
+                    <span className="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {lastResult.execution_time_ms ?? '< 1'} ms
+                    </span>
                   </div>
-                  {lastResult.success && lastResult.result && (
-                    <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700/60 flex items-center justify-between">
-                      <span className="text-xs text-slate-500">Resultado Final</span>
-                      <span className="text-lg font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                        = {lastResult.result}
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {lastResult.success && lastResult.steps && lastResult.steps.length > 0 ? (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Resolução Sequencial (Ordem de Precedência)
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                      Roteiro de Resolução pelo Python:
                     </h4>
                     <div className="space-y-2">
-                      {lastResult.steps.map((step, idx) => (
+                      {lastResult.steps.map((step, index) => (
                         <div
-                          key={idx}
-                          className="flex items-start gap-3 p-3 rounded-xl bg-emerald-500/5 dark:bg-emerald-500/10 border border-emerald-500/20 text-slate-800 dark:text-slate-200 text-sm"
+                          key={index}
+                          className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800/80 flex items-start gap-3 text-xs sm:text-sm font-mono text-slate-800 dark:text-slate-200 animate-fadeIn"
                         >
-                          <span className="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-600 text-white text-xs font-bold shrink-0 mt-0.5">
-                            {idx + 1}
+                          <span className="w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                            {index + 1}
                           </span>
-                          <span className="font-mono">{step}</span>
+                          <span className="leading-relaxed">{step}</span>
                         </div>
                       ))}
                     </div>
@@ -185,7 +178,7 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
                   Nenhum cálculo realizado ainda.
                 </p>
                 <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                  Digite uma expressão como <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">10 + 5 * 2</code> ou <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">(15 - 3) / 4</code> e clique em <strong>=</strong> para ver a resolução passo a passo pelo Python.
+                  Digite uma expressão como <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">200 * 15%</code>, <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">100 + 20%</code> ou <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">(15 - 3) / 4</code> e clique em <strong>=</strong> para ver a resolução passo a passo pelo Python.
                 </p>
               </div>
             )}
@@ -211,7 +204,7 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
                   <span>Captura & Entrada (Interface Reativa)</span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  O usuário digita números e operadores via toque tátil no celular ou teclado físico no computador. O estado React monta a expressão garantindo sintaxe amigável.
+                  O usuário digita números, operadores e porcentagens via toque tátil no celular ou teclado físico no computador. O estado React monta a expressão garantindo sintaxe amigável.
                 </p>
               </div>
 
@@ -231,7 +224,7 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
                   <span>Análise Léxica & Tokenização em Python</span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  O script <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded">calculator.py</code> decompõe o texto em uma sequência estruturada de tokens (<code className="font-mono text-emerald-600 dark:text-emerald-400">NUMBER</code>, <code className="font-mono text-amber-600 dark:text-amber-400">OPERATOR</code>, <code className="font-mono text-purple-600 dark:text-purple-400">PAREN</code>, <code className="font-mono text-blue-600 dark:text-blue-400">UNARY_OP</code>), tratando decimais e números negativos.
+                  O script <code className="font-mono bg-slate-200 dark:bg-slate-700 px-1 py-0.5 rounded">calculator.py</code> decompõe o texto em uma sequência estruturada de tokens (<code className="font-mono text-emerald-600 dark:text-emerald-400">NUMBER</code>, <code className="font-mono text-amber-600 dark:text-amber-400">OPERATOR</code>, <code className="font-mono text-purple-600 dark:text-purple-400">PAREN</code>, <code className="font-mono text-blue-600 dark:text-blue-400">UNARY_OP</code>, <code className="font-mono text-rose-600 dark:text-rose-400">PERCENT</code>), tratando decimais, porcentagens e números negativos.
                 </p>
               </div>
 
@@ -241,7 +234,7 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
                   <span>Precedência Shunting-Yard & Avaliação Decimal</span>
                 </div>
                 <p className="text-xs text-slate-600 dark:text-slate-400">
-                  O algoritmo Shunting-Yard (de Edsger Dijkstra) converte os tokens em Notação Polonesa Reversa (RPN), ordenando as multiplicações e divisões antes de adições e subtrações. A avaliação é realizada com a biblioteca nativa <code className="font-mono text-slate-800 dark:text-slate-200 font-semibold">decimal.Decimal</code> do Python, eliminando imprecisões binárias de ponto flutuante.
+                  O algoritmo Shunting-Yard (de Edsger Dijkstra) converte os tokens em Notação Polonesa Reversa (RPN), ordenando porcentagens e multiplicações/divisões antes de adições e subtrações. A avaliação é realizada com a biblioteca nativa <code className="font-mono text-slate-800 dark:text-slate-200 font-semibold">decimal.Decimal</code> do Python, eliminando imprecisões binárias de ponto flutuante.
                 </p>
               </div>
 
@@ -347,6 +340,16 @@ export const ExplanationPanel: React.FC<ExplanationPanelProps> = ({ lastResult }
                 </span>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Não existe número real <code className="font-mono">x</code> tal que <code className="font-mono">x * 0 = a</code> (para <code className="font-mono">a != 0</code>). O motor Python bloqueia e alerta o usuário imediatamente.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-1.5 sm:col-span-2">
+                <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-amber-500" />
+                  5. Cálculo de Porcentagem (%)
+                </span>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Tratado como operador prioritário pós-fixo. Suporta cálculos fracionários diretos (<code className="font-mono">50% = 0.5</code>, <code className="font-mono">200 * 15% = 30</code>) e acréscimos ou descontos comerciais (<code className="font-mono">100 + 20% = 120</code>, <code className="font-mono">100 - 15% = 85</code>).
                 </p>
               </div>
             </div>

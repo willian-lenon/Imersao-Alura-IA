@@ -98,6 +98,30 @@ export default function App() {
     }
   }, [currentInput, expression]);
 
+  // Trata operador de porcentagem (%)
+  const handlePercent = useCallback(() => {
+    setErrorMessage(null);
+
+    if (isResult) {
+      if (currentInput && currentInput !== '0') {
+        setCurrentInput((prev) => (prev.endsWith('%') ? prev : `${prev}%`));
+        setIsResult(false);
+      }
+      return;
+    }
+
+    if (currentInput && currentInput !== '0') {
+      if (!currentInput.endsWith('%')) {
+        setCurrentInput((prev) => `${prev}%`);
+      }
+    } else if (expression) {
+      const trimmed = expression.trim();
+      if (!trimmed.endsWith('%') && !['+', '-', '*', '/'].includes(trimmed.slice(-1))) {
+        setExpression((prev) => `${prev}%`);
+      }
+    }
+  }, [currentInput, expression, isResult]);
+
   // Trata parênteses
   const handleParen = useCallback((paren: '(' | ')') => {
     setErrorMessage(null);
@@ -251,6 +275,10 @@ export default function App() {
         e.preventDefault();
         feedback.playKeyClick('operator');
         handleOperator(e.key);
+      } else if (e.key === '%') {
+        e.preventDefault();
+        feedback.playKeyClick('operator');
+        handlePercent();
       } else if (e.key === '(' || e.key === ')') {
         e.preventDefault();
         feedback.playKeyClick('operator');
@@ -272,77 +300,90 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleDigit, handleOperator, handleParen, handleCalculate, handleBackspace, handleClear]);
+  }, [handleDigit, handleOperator, handlePercent, handleParen, handleCalculate, handleBackspace, handleClear]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors antialiased">
       {/* Top Bar seguindo o Top Bar Contract: 3 zonas sem poluição visual */}
       <header className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
-          {/* Zona 1: Nome da Marca */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm">
-              <Terminal className="w-4 h-4 stroke-[2.5]" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          {/* Zona Esquerda: Identidade do Projeto */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-md shadow-emerald-600/20">
+              <Terminal className="w-5 h-5" />
             </div>
-            <span className="text-lg font-bold tracking-tight text-slate-900 dark:text-white whitespace-nowrap">
-              PyCalc
-            </span>
-            <span className="text-xs text-slate-400 font-mono hidden sm:inline">
-              v1.0 Python Engine
+            <div>
+              <h1 className="font-bold text-base sm:text-lg leading-tight flex items-center gap-2">
+                PyCalc FullStack
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  Python 3.10
+                </span>
+              </h1>
+              <p className="text-xs text-slate-500 hidden sm:block">
+                Motor aritmético seguro com precisão Decimal e análise PEMDAS
+              </p>
+            </div>
+          </div>
+
+          {/* Zona Central: Status de Conexão com o Motor */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <div
+              className={`w-2 h-2 rounded-full ${
+                pythonStatus === 'connected'
+                  ? 'bg-emerald-500 animate-pulse'
+                  : pythonStatus === 'checking'
+                  ? 'bg-amber-500 animate-spin'
+                  : 'bg-rose-500'
+              }`}
+            />
+            <span className="text-xs font-medium text-slate-600 dark:text-slate-300">
+              {pythonStatus === 'connected'
+                ? 'Backend Python Conectado'
+                : pythonStatus === 'checking'
+                ? 'Sondando Motor...'
+                : 'Servidor Offline'}
             </span>
           </div>
 
-          {/* Zona 2: Navegação e Informações de Estado */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-slate-400">
-            <span className="text-slate-900 dark:text-white font-semibold">
-              Calculadora Científica Básica
-            </span>
-            <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span>Precedência PEMDAS</span>
-            <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span>Precisão Decimal Exata</span>
-          </nav>
-
-          {/* Zona 3: Controles Úteis (Som, Tema Escuro/Claro) */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Zona Direita: Ações Globais (Som, Tema) */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={toggleSound}
-              className={`p-2 rounded-xl border transition-all text-xs flex items-center gap-1.5 ${
+              className={`p-2 rounded-xl border transition-all ${
                 soundEnabled
-                  ? 'bg-emerald-50 border-emerald-300 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-400'
-                  : 'bg-slate-100 border-slate-200 text-slate-500 hover:text-slate-900 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400'
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
               }`}
-              title={soundEnabled ? 'Desativar som de clique' : 'Ativar som de clique'}
-              aria-label="Alternar som"
+              title={soundEnabled ? 'Desativar sons' : 'Ativar feedback sonoro'}
+              aria-label="Controle de áudio"
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-              <span className="hidden sm:inline font-medium">Som</span>
             </button>
 
             <button
               type="button"
               onClick={() => setDarkMode(!darkMode)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 transition-colors"
               title={darkMode ? 'Mudar para tema claro' : 'Mudar para tema escuro'}
-              aria-label="Alternar tema claro/escuro"
+              aria-label="Alternar tema de cores"
             >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {darkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
           </div>
         </div>
       </header>
 
-      {/* Navegação Mobile em Segmented Control (quando em telas menores) */}
-      <div className="md:hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2 sticky top-16 z-20">
-        <div className="flex items-center p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
+      {/* Navegação Mobile em Abas (Apenas telas pequenas) */}
+      <div className="lg:hidden border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur sticky top-16 z-20">
+        <div className="flex p-1.5 gap-1 max-w-md mx-auto">
           <button
             type="button"
             onClick={() => setMobileTab('calc')}
             className={`flex-1 py-1.5 text-xs font-medium rounded-lg transition-all ${
               mobileTab === 'calc'
-                ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-semibold'
-                : 'text-slate-500 dark:text-slate-400'
+                ? 'bg-emerald-600 text-white shadow-sm font-semibold'
+                : 'text-slate-600 dark:text-slate-400'
             }`}
           >
             Calculadora
@@ -396,6 +437,7 @@ export default function App() {
               <Keypad
                 onDigit={handleDigit}
                 onOperator={handleOperator}
+                onPercent={handlePercent}
                 onClear={handleClear}
                 onBackspace={handleBackspace}
                 onToggleSign={handleToggleSign}
@@ -409,7 +451,7 @@ export default function App() {
             <div className="hidden sm:flex items-center justify-between px-2 text-xs text-slate-500 dark:text-slate-400">
               <span>Suporte a teclado numérico físico</span>
               <span className="font-mono text-[11px] bg-slate-200 dark:bg-slate-800 px-2 py-0.5 rounded">
-                0-9 · + − × ÷ · Enter · Esc
+                0-9 · + − × ÷ % · Enter · Esc
               </span>
             </div>
           </div>

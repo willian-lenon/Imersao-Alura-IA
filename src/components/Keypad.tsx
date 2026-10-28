@@ -5,6 +5,7 @@ import { feedback } from '../utils/feedback';
 interface KeypadProps {
   onDigit: (digit: string) => void;
   onOperator: (operator: string) => void;
+  onPercent: () => void;
   onClear: () => void;
   onBackspace: () => void;
   onToggleSign: () => void;
@@ -16,6 +17,7 @@ interface KeypadProps {
 export const Keypad: React.FC<KeypadProps> = ({
   onDigit,
   onOperator,
+  onPercent,
   onClear,
   onBackspace,
   onToggleSign,
@@ -188,13 +190,23 @@ export const Keypad: React.FC<KeypadProps> = ({
         </button>
       </div>
 
-      {/* Linha 6: Tecla Primária de Execução do Cálculo (=) */}
-      <div className="w-full">
+      {/* Linha 6: Porcentagem (%) e Tecla Primária de Execução do Cálculo (=) */}
+      <div className="grid grid-cols-4 gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => handleKeyClick(onPercent, 'operator')}
+          className="h-14 sm:h-15 rounded-xl sm:rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 active:bg-amber-500/30 text-amber-600 dark:text-amber-400 font-bold text-2xl sm:text-3xl flex items-center justify-center transition-all border border-amber-500/20 active:scale-[0.97]"
+          title="Porcentagem (%)"
+          aria-label="Calcular Porcentagem"
+        >
+          %
+        </button>
+
         <button
           type="button"
           disabled={isLoading}
           onClick={() => handleKeyClick(onCalculate, 'equals')}
-          className={`w-full h-14 sm:h-15 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-2xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-900/15 active:scale-[0.98] ${
+          className={`col-span-3 h-14 sm:h-15 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-bold text-2xl flex items-center justify-center gap-2 transition-all shadow-md shadow-emerald-900/15 active:scale-[0.98] ${
             isLoading ? 'opacity-80 cursor-wait' : ''
           }`}
           title="Calcular resultado (Enter ou =)"
