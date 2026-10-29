@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quadro de Tarefas (Kanban)</title>
+  <!-- Vinculação do arquivo de estilo CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Container Principal da Aplicação -->
+  <div class="app-wrapper">
+    <header class="app-header">
+      <h1>Quadro de Tarefas</h1>
+      <p class="subtitulo">Gerencie suas atividades arrastando os cards entre as colunas</p>
+    </header>
+
+    <!-- Formulário para adicionar novo card -->
+    <section class="secao-criacao">
+      <form id="form-tarefa" class="form-tarefa">
+        <input 
+          type="text" 
+          id="input-tarefa" 
+          placeholder="Digite o título da nova tarefa..." 
+          autocomplete="off"
+          required
+        >
+        
+        <select id="select-coluna-inicial" class="select-coluna">
+          <option value="pendente">Pendente</option>
+          <option value="em_andamento">Em Andamento</option>
+          <option value="concluido">Concluído</option>
+        </select>
+
+        <button type="submit" id="btn-adicionar">+ Adicionar Card</button>
+      </form>
+    </section>
+
+    <!-- Quadro de Colunas (Estilo Kanban) -->
+    <main class="quadro-kanban">
+      
+      <!-- Coluna 1: Pendente -->
+      <section class="coluna coluna-pendente" data-status="pendente">
+        <div class="coluna-cabecalho">
+          <div class="coluna-titulo-grupo">
+            <span class="indicador-cor indicador-pendente"></span>
+            <h2>Pendente</h2>
+          </div>
+          <span class="contador-badge" id="badge-pendente">0</span>
+        </div>
+        <div class="coluna-cards" id="cards-pendente">
+          <!-- Cards adicionados via JavaScript -->
+        </div>
+      </section>
+
+      <!-- Coluna 2: Em Andamento -->
+      <section class="coluna coluna-em-andamento" data-status="em_andamento">
+        <div class="coluna-cabecalho">
+          <div class="coluna-titulo-grupo">
+            <span class="indicador-cor indicador-andamento"></span>
+            <h2>Em Andamento</h2>
+          </div>
+          <span class="contador-badge" id="badge-em_andamento">0</span>
+        </div>
+        <div class="coluna-cards" id="cards-em_andamento">
+          <!-- Cards adicionados via JavaScript -->
+        </div>
+      </section>
+
+      <!-- Coluna 3: Concluído -->
+      <section class="coluna coluna-concluido" data-status="concluido">
+        <div class="coluna-cabecalho">
+          <div class="coluna-titulo-grupo">
+            <span class="indicador-cor indicador-concluido"></span>
+            <h2>Concluído</h2>
+          </div>
+          <span class="contador-badge" id="badge-concluido">0</span>
+        </div>
+        <div class="coluna-cards" id="cards-concluido">
+          <!-- Cards adicionados via JavaScript -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Inclusão do JavaScript -->
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+/* ============================================================
+   VARIÁVEIS DE CORES E TEMA
+   ============================================================ */
+:root {
+  --cor-fundo: #f0f2f5;
+  --cor-card-bg: #ffffff;
+  --cor-coluna-bg: #ebedf0;
+  --cor-texto-principal: #1e293b;
+  --cor-texto-secundario: #64748b;
+  --cor-borda: #cbd5e1;
+  --cor-borda-suave: #e2e8f0;
+
+  /* Cores das colunas */
+  --cor-pendente: #f59e0b;       /* Âmbar */
+  --cor-pendente-bg: #fef3c7;
+  --cor-andamento: #3b82f6;      /* Azul */
+  --cor-andamento-bg: #dbeafe;
+  --cor-concluido: #10b981;      /* Verde */
+  --cor-concluido-bg: #d1fae5;
+
+  --cor-primaria: #4f46e5;
+  --cor-primaria-hover: #4338ca;
+  --cor-perigo: #ef4444;
+  --cor-perigo-hover: #dc2626;
+
+  --sombra-card: 0 2px 6px rgba(0, 0, 0, 0.06);
+  --sombra-card-hover: 0 8px 16px rgba(0, 0, 0, 0.1);
+  --sombra-arrastando: 0 14px 28px rgba(0, 0, 0, 0.15);
+  --raio-borda: 10px;
+}
+
+/* ============================================================
+   RESET GERAL
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto-principal);
+  min-height: 100vh;
+  padding: 24px 16px;
+}
+
+/* ============================================================
+   CONTAINER PRINCIPAL
+   ============================================================ */
+.app-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  color: var(--cor-texto-principal);
+  margin-bottom: 6px;
+}
+
+.subtitulo {
+  color: var(--cor-texto-secundario);
+  font-size: 0.95rem;
+}
+
+/* ============================================================
+   SEÇÃO DE CRIAÇÃO (FORMULÁRIO)
+   ============================================================ */
+.secao-criacao {
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: var(--raio-borda);
+  border: 1px solid var(--cor-borda-suave);
+  box-shadow: var(--sombra-card);
+  margin-bottom: 28px;
+}
+
+.form-tarefa {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-tarefa input {
+  flex: 3;
+  min-width: 240px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  border: 1.5px solid var(--cor-borda-suave);
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-tarefa input:focus {
+  border-color: var(--cor-primaria);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+}
+
+.select-coluna {
+  flex: 1;
+  min-width: 160px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  background-color: #ffffff;
+  border: 1.5px solid var(--cor-borda-suave);
+  border-radius: 8px;
+  outline: none;
+  cursor: pointer;
+  color: var(--cor-texto-principal);
+}
+
+.select-coluna:focus {
+  border-color: var(--cor-primaria);
+}
+
+.form-tarefa button {
+  flex: 1;
+  min-width: 160px;
+  background-color: var(--cor-primaria);
+  color: #ffffff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.form-tarefa button:hover {
+  background-color: var(--cor-primaria-hover);
+}
+
+.form-tarefa button:active {
+  transform: scale(0.98);
+}
+
+/* ============================================================
+   QUADRO KANBAN (COLUNAS)
+   ============================================================ */
+.quadro-kanban {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  align-items: flex-start;
+}
+
+/* Em telas menores, as colunas ficam empilhadas */
+@media (max-width: 900px) {
+  .quadro-kanban {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Estilo individual de cada coluna */
+.coluna {
+  background-color: var(--cor-coluna-bg);
+  border-radius: var(--raio-borda);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 480px;
+  border: 2px dashed transparent;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+/* Efeito visual quando um card está sendo arrastado sobre a coluna */
+.coluna.drag-over {
+  border-color: var(--cor-primaria);
+  background-color: #e0e7ff;
+}
+
+/* Cabeçalho da coluna */
+.coluna-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.06);
+}
+
+.coluna-titulo-grupo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.coluna-titulo-grupo h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--cor-texto-principal);
+}
+
+/* Bolinha indicadora de cor da coluna */
+.indicador-cor {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.indicador-pendente { background-color: var(--cor-pendente); }
+.indicador-andamento { background-color: var(--cor-andamento); }
+.indicador-concluido { background-color: var(--cor-concluido); }
+
+/* Badge de contagem de cards */
+.contador-badge {
+  background-color: #ffffff;
+  color: var(--cor-texto-secundario);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 12px;
+  border: 1px solid var(--cor-borda-suave);
+}
+
+/* Área que contém os cards */
+.coluna-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 120px;
+}
+
+/* ============================================================
+   ESTILO DOS CARDS
+   ============================================================ */
+.card-tarefa {
+  background-color: var(--cor-card-bg);
+  border-radius: 8px;
+  padding: 14px;
+  box-shadow: var(--sombra-card);
+  border: 1px solid var(--cor-borda-suave);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-tarefa:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-card-hover);
+}
+
+.card-tarefa:active {
+  cursor: grabbing;
+}
+
+/* Estado durante o arraste */
+.card-tarefa.arrastando {
+  opacity: 0.4;
+  transform: scale(0.98);
+  box-shadow: var(--sombra-arrastando);
+}
+
+/* Conteúdo de texto do card */
+.card-conteudo {
+  font-size: 0.95rem;
+  color: var(--cor-texto-principal);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* Estilo do card quando concluído */
+.card-tarefa[data-status="concluido"] .card-conteudo {
+  text-decoration: line-through;
+  color: var(--cor-texto-secundario);
+}
+
+/* Rodapé do card: Ações rápidas e exclusão */
+.card-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.8rem;
+}
+
+/* Seletor rápido de coluna (ótimo para celular ou quem prefere clicar) */
+.card-mover-select {
+  padding: 4px 8px;
+  border: 1px solid var(--cor-borda-suave);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  background-color: #f8fafc;
+  color: var(--cor-texto-secundario);
+  outline: none;
+  cursor: pointer;
+}
+
+.card-mover-select:hover {
+  background-color: #f1f5f9;
+}
+
+/* Botão de excluir o card */
+.btn-deletar-card {
+  background: none;
+  border: none;
+  color: var(--cor-perigo);
+  padding: 4px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.btn-deletar-card:hover {
+  background-color: #fee2e2;
+  color: var(--cor-perigo-hover);
+}
+
+/* Mensagem de coluna vazia */
+.coluna-vazia {
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-style: italic;
+  padding: 24px 8px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+}
